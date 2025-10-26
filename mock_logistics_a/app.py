@@ -1,24 +1,28 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
 import json
-from typing import List
+import random
+from flask import Flask, jsonify, request
 
-app = FastAPI(title="Mock Partner A", root_path="/mock-a")
+app = Flask(__name__)
 
-with open("/srv/data.json") as f:
-    data = json.load(f)
+DATA_FILE = 'data.json'
+with open(DATA_FILE, 'r') as f:
+    MOCK_DATA = json.load(f)
 
-class LogisticsAResponse(BaseModel):
-    deliveryId: str
-    supplier: str
-    timestamp: str
-    status: str
-    signedBy: str
 
-@app.post("/api/logistics-a", response_model=List[LogisticsAResponse])
-async def logistics_a():
-    return data
+@app.route('/logistics_a/deliveries', methods=['GET'])
+def get_deliveries():
+    site_id = request.args.get('siteId')
 
-@app.get("/healthz")
-async def healthz():
-    return {"status": "ok"}
+    if random.random() < 0.5:
+        app.logger.warning("Simulating 503 Service Unavailable for Partner A.")
+        return jsonify({"detail": "Service is temporarily unavailable (simulated 503)"}), 503
+
+    if site_id:
+        filtered_data = [item for item in MOCK_DATA if item.get('site_id') == site_id]
+        return jsonify(filtered_data)
+
+    return jsonify(MOCK_DATA)
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)

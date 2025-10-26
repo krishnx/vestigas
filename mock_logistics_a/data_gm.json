@@ -1,0 +1,30 @@
+[
+  {
+    "order_id": "ORD-1001",
+    "site_id": "munich-schwabing-1",
+    "deliveryStatus": "DELIVERED",
+    "deliveryTime": "2025-08-01T10:00:00Z",
+    "podSigned": true
+  },
+  {
+    "order_id": "ORD-1002",
+    "site_id": "munich-schwabing-1",
+    "deliveryStatus": "IN_TRANSIT",
+    "deliveryTime": "2025-08-01T08:30:00Z",
+    "podSigned": false
+  },
+  {
+    "order_id": "ORD-1003",
+    "site_id": "munich-schwabing-1",
+    "deliveryStatus": "CANCELLED",
+    "deliveryTime": "2025-08-01T11:00:00Z",
+    "podSigned": true
+  },
+  {
+    "order_id": "ORD-1004",
+    "site_id": "munich-schwabing-2",
+    "deliveryStatus": "DELIVERED",
+    "deliveryTime": "2025-08-01T14:15:00Z",
+    "podSigned": false
+  }
+]

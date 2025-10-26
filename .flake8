@@ -1,0 +1,26 @@
+[flake8]
+# Basic Configuration
+max-line-length = 120
+max-complexity = 10
+ignore =
+    E402,
+    F401,
+    C901
+
+# Directory Exclusion
+# FIX: Explicitly exclude the virtual environment directory
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    .tox,
+    .idea
+
+# Specify the checks to run (default includes E, W, F)
+select =
+    E,
+    W,
+    F,
+    C,
+    B

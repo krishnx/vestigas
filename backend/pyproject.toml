@@ -1,0 +1,28 @@
+[project]
+name = "vestigas-backend-coding-challenge"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "krishnx",email = "krishnashoot@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "sqlalchemy (>=2.0.44,<3.0.0)",
+    "gunicorn (>=23.0.0,<24.0.0)",
+    "uvicorn (==0.23.1)",
+    "fastapi (>=0.120.0,<0.121.0)",
+    "httpx (>=0.28.1,<0.29.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = ">=0.100.0"
+uvicorn = "^0.23.1"
+requests = "^2.31.0"
+gunicorn = "*"
