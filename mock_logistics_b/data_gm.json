@@ -1,0 +1,23 @@
+[
+  {
+    "reference_id": "REF-2001",
+    "location": {"site_ref": "munich-schwabing-1"},
+    "status": {"code": "COMPLETE", "description": "Delivery finished"},
+    "timestamps": {"delivery_completion": 1754044800},
+    "proof": {"signed": true}
+  },
+  {
+    "reference_id": "REF-2002",
+    "location": {"site_ref": "munich-schwabing-1"},
+    "status": {"code": "PENDING", "description": "Out for delivery"},
+    "timestamps": {"delivery_completion": 1754034000},
+    "proof": {"signed": false}
+  },
+  {
+    "reference_id": "REF-2003",
+    "location": {"site_ref": "munich-schwabing-3"},
+    "status": {"code": "COMPLETE", "description": "Delivery finished"},
+    "timestamps": {"delivery_completion": 1754055600},
+    "proof": {"signed": true}
+  }
+]

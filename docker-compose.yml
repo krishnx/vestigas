@@ -1,105 +1,59 @@
 services:
-  traefik:
-    image: traefik:v3.0
-    container_name: traefik
-    networks:
-      - vestigas_net
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--log.level=ERROR"
-    ports:
-      - "${HTTP_PORT:-8000}:80"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-
   backend:
-    build: ./backend
-    container_name: backend
-    networks:
-      - vestigas_net
-    depends_on:
-      db:
-        condition: service_healthy
-      mock_a:
-        condition: service_healthy
-      mock_b:
-        condition: service_healthy
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: "sqlite:///./delivery.db"
+      LOGISTICS_A_URL: "http://mock_a:8080/logistics_a/deliveries"
+      LOGISTICS_B_URL: "http://mock_b:8080/logistics_b/deliveries"
+      PYTHONPATH: "/app"        # 🔧 Tell Python where to find the backend package
+    working_dir: /app           # 🔧 Ensure we're running inside /app
+    command: gunicorn backend.main:app \
+             --workers 1 \
+             --worker-class uvicorn.workers.UvicornWorker \
+             --bind 0.0.0.0:80  # 🔧 Match Traefik config (port 80 inside container)
+    volumes:
+      - ./backend:/app/backend          # 🔧 Mount your backend code to /app
+      - ./backend_data:/app/backend/backend_data
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=PathPrefix(`/backend`)"
+      - "traefik.http.routers.backend.rule=Host(`localhost`) && PathPrefix(`/backend/deliveries`)"
       - "traefik.http.routers.backend.entrypoints=web"
-      - "traefik.http.services.backend.loadbalancer.server.port=8000"
-    environment:
-      - LOGISTICS_A_URL=http://mock_a:8000/api/logistics-a
-      - LOGISTICS_B_URL=http://mock_b:8000/api/logistics-b
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-
-  db:
-    image: postgres:17
-    container_name: db
-    networks:
-      - vestigas_net
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    logging:
-      driver: "none"
+      - "traefik.http.services.backend.loadbalancer.server.port=80"
 
   mock_a:
-    build: ./mock_logistics_a
-    container_name: mock_a
-    networks:
-      - vestigas_net
-    volumes:
-      - ./mock_logistics_a/data.json:/srv/data.json:ro
+    build:
+      context: ./mock_logistics_a
+      dockerfile: Dockerfile
+    command: uvicorn app:app --host 0.0.0.0 --port 8080 --no-access-log
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.mocka.rule=PathPrefix(`/mock-a`)"
-      - "traefik.http.routers.mocka.entrypoints=web"
-      - "traefik.http.middlewares.mocka-stripprefix.stripprefix.prefixes=/mock-a"
-      - "traefik.http.routers.mocka.middlewares=mocka-stripprefix"
-      - "traefik.http.services.mocka.loadbalancer.server.port=8000"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://localhost:8000/healthz || exit 1"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-      start_period: 5s
+      - "traefik.http.routers.mock_a.rule=Host(`localhost`) && PathPrefix(`/logistics_a`)"
+      - "traefik.http.routers.mock_a.entrypoints=web"
+      - "traefik.http.services.mock_a.loadbalancer.server.port=8080"
 
   mock_b:
-    build: ./mock_logistics_b
-    container_name: mock_b
-    networks:
-      - vestigas_net
-    volumes:
-      - ./mock_logistics_b/data.json:/srv/data.json:ro
+    build:
+      context: ./mock_logistics_b
+      dockerfile: Dockerfile
+    command: uvicorn app:app --host 0.0.0.0 --port 8080 --no-access-log
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.mockb.rule=PathPrefix(`/mock-b`)"
-      - "traefik.http.routers.mockb.entrypoints=web"
-      - "traefik.http.middlewares.mockb-stripprefix.stripprefix.prefixes=/mock-b"
-      - "traefik.http.routers.mockb.middlewares=mockb-stripprefix"
-      - "traefik.http.services.mockb.loadbalancer.server.port=8000"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://localhost:8000/healthz || exit 1"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-      start_period: 5s
+      - "traefik.http.routers.mock_b.rule=Host(`localhost`) && PathPrefix(`/logistics_b`)"
+      - "traefik.http.routers.mock_b.entrypoints=web"
+      - "traefik.http.services.mock_b.loadbalancer.server.port=8080"
 
-networks:
-  vestigas_net:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - --api.insecure=true
+      - --providers.docker=true
+      - --entrypoints.web.address=:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
 volumes:
-  postgres_data:
+  backend_data:

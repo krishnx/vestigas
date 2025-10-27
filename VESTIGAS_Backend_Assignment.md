@@ -314,7 +314,7 @@ curl -X POST http://localhost:8000/backend/deliveries/fetch \
 Check status:
 
 ```bash
-curl http://localhost:8000/backend/deliveries/jobs/<jobId>
+curl http://localhost:8000/backend/deliveries/jobs/<job_id>
 ```
 
 Get results by job:

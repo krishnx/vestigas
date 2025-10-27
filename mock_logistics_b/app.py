@@ -1,29 +1,29 @@
-
-from fastapi import FastAPI
-from pydantic import BaseModel
 import json
-from typing import List
+from flask import Flask, jsonify, request
 
-app = FastAPI(title="Mock Partner B", root_path="/mock-b")
+app = Flask(__name__)
 
-with open("/srv/data.json") as f:
-    data = json.load(f)
+# Load mock data
+DATA_FILE = 'data.json'
+with open(DATA_FILE, 'r') as f:
+    MOCK_DATA = json.load(f)
 
-class Receiver(BaseModel):
-    name: str
-    signed: bool
 
-class LogisticsBResponse(BaseModel):
-    id: str
-    provider: str
-    deliveredAt: str
-    statusCode: str
-    receiver: Receiver
+# Mock endpoint for Partner B
+@app.route('/logistics_b/deliveries', methods=['GET'])
+def get_deliveries():
+    site_id = request.args.get('siteId')
 
-@app.post("/api/logistics-b", response_model=List[LogisticsBResponse])
-async def logistics_b():
-    return data
+    if site_id:
+        filtered_data = [
+            item for item in MOCK_DATA
+            if item.get('location', {}).get('site_ref') == site_id
+        ]
 
-@app.get("/healthz")
-async def healthz():
-    return {"status": "ok"}
+        return jsonify(filtered_data)
+
+    return jsonify(MOCK_DATA)
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
